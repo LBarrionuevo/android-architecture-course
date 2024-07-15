@@ -1,4 +1,4 @@
-package com.techyourchance.architecture
+package com.techyourchance.architecture.screens
 
 import android.os.Bundle
 import android.text.Html
@@ -69,6 +69,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
+import com.techyourchance.architecture.common.database.FavoriteQuestionDao
+import com.techyourchance.architecture.common.database.MyRoomDatabase
+import com.techyourchance.architecture.R
+import com.techyourchance.architecture.common.networking.StackoverflowApi
+import com.techyourchance.architecture.question.FavoriteQuestion
+import com.techyourchance.architecture.question.QuestionSchema
+import com.techyourchance.architecture.question.QuestionWithBodySchema
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -157,7 +164,9 @@ sealed class Route(val routeName: String, val bottomTab: BottomTab) {
     data object MainTab: Route("mainTab", BottomTab.Main)
     data object FavoritesTab: Route("favoritesTab", BottomTab.Favorites)
     data object QuestionsListScreen: Route("questionsList", BottomTab.Main)
-    data object QuestionDetailsScreen: Route("questionDetails/{questionId}/{questionTitle}", BottomTab.Main)
+    data object QuestionDetailsScreen: Route("questionDetails/{questionId}/{questionTitle}",
+        BottomTab.Main
+    )
     data object FavoriteQuestionsScreen: Route("favorites", BottomTab.Favorites)
 }
 
