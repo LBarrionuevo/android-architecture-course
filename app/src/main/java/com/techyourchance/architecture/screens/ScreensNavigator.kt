@@ -15,13 +15,12 @@ class ScreensNavigator {
     private val scoope = CoroutineScope(Dispatchers.Main.immediate)
     private lateinit var parentNavController : NavHostController
     private lateinit var nestedNavController : NavHostController
+    private var parentNavControllerObserverJob : Job? = null
     private var nestedNavControllerObserverJob : Job? = null
 
     val currentBottomTab = MutableStateFlow<BottomTab?>(null) //BottomTab.Main
     val currentRoute =  MutableStateFlow<Route?>(null) //Route.QuestionsListScreen
     val isRootRoute = MutableStateFlow(false)
-
-    val argument = MutableStateFlow<Bundle?>(null)
 
     fun navigateBack() {
         if (!nestedNavController.popBackStack()) {
@@ -48,13 +47,17 @@ class ScreensNavigator {
 
     fun setParentNavController(navController: NavHostController) {
         parentNavController = navController
-        parentNavController.currentBackStackEntryFlow.map { backStackEntry ->
-            val bottomTab = when(val routeName = backStackEntry.destination.route){
-                Route.MainTab.routeName -> Route.MainTab
-                Route.FavoritesTab.routeName -> Route.FavoritesTab
-                null -> null
-                else -> throw RuntimeException("unsupported bottom tab: $routeName")
-            }
+        parentNavControllerObserverJob?.cancel()
+        parentNavControllerObserverJob  = scoope.launch {
+            parentNavController.currentBackStackEntryFlow.map { backStackEntry ->
+                val bottomTab = when (val routeName = backStackEntry.destination.route) {
+                    Route.MainTab.routeName -> BottomTab.Main
+                    Route.FavoritesTab.routeName -> BottomTab.Favorites
+                    null -> null
+                    else -> throw RuntimeException("unsupported bottom tab: $routeName")
+                }
+                currentBottomTab.value = bottomTab
+            }.collect()
         }
     }
 
@@ -63,23 +66,30 @@ class ScreensNavigator {
 
         nestedNavControllerObserverJob?.cancel()
         nestedNavControllerObserverJob  = scoope.launch {
-
-
             nestedNavController.currentBackStackEntryFlow.map { backStackEntry ->
                 val route = when (val routeName = backStackEntry.destination.route) {
                     Route.MainTab.routeName -> Route.MainTab
                     Route.FavoritesTab.routeName -> Route.FavoritesTab
                     Route.QuestionsListScreen.routeName -> Route.QuestionsListScreen
-                    Route.QuestionDetailsScreen.routeName -> Route.QuestionDetailsScreen
+                    Route.QuestionDetailsScreen().routeName -> {
+                        val args = backStackEntry.arguments
+                        Route.QuestionDetailsScreen(
+                            args?.getString("questionId")!!,
+                            args.getString("questionTitle")!!
+                        )
+                    }
                     Route.FavoriteQuestionsScreen.routeName -> Route.FavoriteQuestionsScreen
                     null -> null
                     else -> throw RuntimeException("unsupported route: $routeName")
                 }
                 currentRoute.value = route
                 isRootRoute.value = route == Route.QuestionsListScreen
-                argument.value = backStackEntry.arguments
             }.collect()
         }
+    }
+
+    fun toRoute(route: Route) {
+        nestedNavController.navigate(route.navCommand)
     }
 
     companion object{
