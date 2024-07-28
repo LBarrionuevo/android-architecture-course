@@ -22,11 +22,11 @@ import com.techyourchance.architecture.screens.common.composables.QuestionItem
 
 @Composable
 fun FavoriteQuestionsScreen(
-    favoriteQuestionDao: FavoriteQuestionDao,
+    favoritePresenter: FavoriteQuestionsPresenter,
     onQuestionClicked: (String, String) -> Unit
 ) {
-    val favorites = favoriteQuestionDao.observe().collectAsState(initial = listOf())
-
+    val favorites = favoritePresenter.favoriteQuestions.collectAsState(initial = listOf())
+//    favoritePresenter.observeFavoriteQuestions()
     if (favorites.value.isNotEmpty()) {
         LazyColumn(
             modifier = Modifier
