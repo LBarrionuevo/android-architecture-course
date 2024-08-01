@@ -1,5 +1,6 @@
 package com.techyourchance.architecture.screens.questionlist
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.techyourchance.architecture.BuildConfig
 import com.techyourchance.architecture.common.networking.StackoverflowApi
@@ -45,5 +46,10 @@ class QuestionsListViewModel:ViewModel() {
             lastActiveQuestions.value = question
         }
 
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.i("QuestionsListViewModel", "onCleared()")
     }
 }

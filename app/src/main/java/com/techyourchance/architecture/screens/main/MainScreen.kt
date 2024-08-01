@@ -18,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,9 +30,8 @@ import com.techyourchance.architecture.screens.Route
 import com.techyourchance.architecture.screens.ScreensNavigator
 import com.techyourchance.architecture.screens.favoritequestion.FavoriteQuestionsPresenter
 import com.techyourchance.architecture.screens.favoritequestion.FavoriteQuestionsScreen
-import com.techyourchance.architecture.screens.questiondetails.QuestionDetailsPresenter
+import com.techyourchance.architecture.screens.questiondetails.QuestionDetailsViewModel
 import com.techyourchance.architecture.screens.questiondetails.QuestionDetailsScreen
-import com.techyourchance.architecture.screens.questionlist.QuestionsListViewModel
 import com.techyourchance.architecture.screens.questionlist.QuestionsListScreen
 import kotlinx.coroutines.flow.map
 
@@ -119,6 +120,17 @@ private fun MainScreenContent(
 ) {
     val parentNavController = rememberNavController()
     screenNavigator.setParentNavController(parentNavController)
+
+    val viewModelFactory = object : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if(modelClass.isAssignableFrom(QuestionDetailsViewModel::class.java)){
+                return QuestionDetailsViewModel(stackoverflowApi, favoriteQuestionDao) as T
+            }
+            return super.create(modelClass)
+        }
+    }
+
     Surface(
         modifier = Modifier
             .padding(padding)
@@ -128,13 +140,6 @@ private fun MainScreenContent(
         val favoritePresenter = remember {
             FavoriteQuestionsPresenter(favoriteQuestionDao)
         }
-        val questionDetailPresenter1 = remember {
-            QuestionDetailsPresenter(stackoverflowApi, favoriteQuestionDao)
-        }
-        val questionDetailPresenter2 = remember {
-            QuestionDetailsPresenter(stackoverflowApi, favoriteQuestionDao)
-        }
-
         NavHost(
             modifier = Modifier.fillMaxSize(),
             navController = parentNavController,
@@ -162,8 +167,8 @@ private fun MainScreenContent(
                             (screenNavigator.currentRoute.value as Route.QuestionDetailsScreen).questionId
                         }
                         QuestionDetailsScreen(
+                            viewModelFactory = viewModelFactory,
                             questionId = questionId,
-                            presenter = questionDetailPresenter1,
                             onError = {
                                 mainNestedNavController.popBackStack()
                             }
@@ -194,8 +199,8 @@ private fun MainScreenContent(
                             (screenNavigator.currentRoute.value as Route.QuestionDetailsScreen).questionId
                         }
                         QuestionDetailsScreen(
+                            viewModelFactory = viewModelFactory,
                             questionId = questionId,
-                            presenter = questionDetailPresenter2,
                             onError = {
                                 screenNavigator.navigateBack()
                             }
