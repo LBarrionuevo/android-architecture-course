@@ -14,19 +14,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.techyourchance.architecture.common.database.FavoriteQuestionDao
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 
-import com.techyourchance.architecture.screens.Route
 import com.techyourchance.architecture.screens.common.composables.QuestionItem
 
 @Composable
 fun FavoriteQuestionsScreen(
-    favoritePresenter: FavoriteQuestionsPresenter,
+    viewModelFactory: ViewModelProvider.Factory,
+    favoriteViewModel: FavoriteQuestionsViewModel = viewModel(factory = viewModelFactory),
     onQuestionClicked: (String, String) -> Unit
 ) {
-    val favorites = favoritePresenter.favoriteQuestions.collectAsState(initial = listOf())
-//    favoritePresenter.observeFavoriteQuestions()
+    val favorites = favoriteViewModel.favoriteQuestions.collectAsState(initial = listOf())
+
     if (favorites.value.isNotEmpty()) {
         LazyColumn(
             modifier = Modifier
